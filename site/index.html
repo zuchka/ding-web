@@ -216,6 +216,59 @@
       font-size: 0.85rem;
     }
 
+    /* ── Stat grid ── */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: #222;
+      border: 1px solid #222;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: #141414;
+      padding: 24px 20px;
+    }
+
+    .stat .stat-num {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #7ee787;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat .stat-label {
+      font-size: 0.75rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .stat .stat-context {
+      font-size: 0.78rem;
+      color: #3a3a3a;
+      margin-top: 5px;
+    }
+
+    /* ── Callout ── */
+    .callout {
+      background: #111;
+      border-left: 3px solid #7ee787;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .callout strong {
+      color: #e8e8e8;
+    }
+
     /* ── Footer ── */
     footer {
       margin-top: 80px;
@@ -241,11 +294,11 @@
     <p class="tagline">Don't store it. Stream it. DING it.</p>
     <div class="install">
       <span class="prompt">$</span>
-      <code>brew install super-ding/tap/ding</code>
+      <code>brew install zuchka/tap/ding</code>
     </div>
     <div class="install">
       <span class="prompt">$</span>
-      <code>curl -sf https://install.ding.ing | sh</code>
+      <code>curl -sf https://start.ding.ing | sh</code>
     </div>
     <p class="install-note">
       or <a href="#install">Docker, binary</a>
@@ -284,7 +337,7 @@
 <span class="cmd">ding serve</span> --config /etc/myapp/alerts.yaml
 
 <span class="comment"># download and start in one shot</span>
-<span class="cmd">curl</span> -sf https://install.ding.ing | sh && <span class="cmd">ding serve</span> --config ./ding.yaml</code></pre>
+<span class="cmd">curl</span> -sf https://start.ding.ing | sh && <span class="cmd">ding serve</span> --config ./ding.yaml</code></pre>
         </div>
       </li>
       <li>
@@ -380,14 +433,45 @@ count(value) over 2m > 50       <span class="comment"># number of events, not su
   <!-- Why -->
   <section>
     <h2>Why</h2>
+    <div class="callout">
+      <strong>Fires alerts in 4ms.</strong> Prometheus default scrape + eval + Alertmanager dispatch: ~62 seconds minimum. That's not a knock on Prometheus — it's a pull-based system built for persistence and fleet-wide aggregation. DING is push-based and stateless. The architecture is the difference.
+    </div>
     <ul class="features">
       <li><strong>Zero infrastructure</strong> — no Prometheus, no Alertmanager, no storage, no agents</li>
       <li><strong>Windowed aggregations</strong> — <code>avg(value) over 5m</code> works with no database, just memory</li>
       <li><strong>Per-host cooldowns</strong> — <code>web-01</code> being loud doesn't silence <code>web-02</code></li>
       <li><strong>Composable</strong> — stdin in, JSON lines out, pipes into anything</li>
-      <li><strong>Config in your repo</strong> — alerting is a dev artifact, not an ops artifact</li>
-      <li><strong>5MB static binary</strong> — runs on linux/arm64, amd64, macOS, Windows</li>
+      <li><strong>Config in your repo</strong> — 12 lines, 1 file vs 30 lines across 3 files for the Prometheus equivalent. Alerting is a dev artifact, not an ops artifact.</li>
+      <li><strong>5MB static binary, 9ms cold start</strong> — runs on linux/arm64, amd64, macOS, Windows. Prometheus cold start: 185ms.</li>
     </ul>
+  </section>
+
+  <!-- Performance -->
+  <section>
+    <h2>Performance</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">4ms</div>
+        <div class="stat-label">Alert latency p50</div>
+        <div class="stat-context">p99: 16ms &mdash; Prometheus default: ~62s</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">116k</div>
+        <div class="stat-label">Requests / second</div>
+        <div class="stat-context">50 concurrent workers, 30s window</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">9ms</div>
+        <div class="stat-label">Cold start p50</div>
+        <div class="stat-context">fork → first /health &mdash; Prometheus: 185ms</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">106ns</div>
+        <div class="stat-label">Per rule evaluation</div>
+        <div class="stat-context">simple threshold &mdash; windowed: 157ns</div>
+      </div>
+    </div>
+    <p>Benchmarked 2026-03-23 on Apple M3. <a href="https://github.com/zuchka/ding/blob/main/BENCHMARKS.md">Full methodology and raw results →</a></p>
   </section>
 
   <!-- Input -->
@@ -437,12 +521,12 @@ count(value) over 2m > 50       <span class="comment"># number of events, not su
   <section id="install">
     <h2>Install</h2>
     <p>Homebrew:</p>
-    <pre><code><span class="cmd">brew install</span> super-ding/tap/ding</code></pre>
+    <pre><code><span class="cmd">brew install</span> zuchka/tap/ding</code></pre>
     <p>Binary:</p>
-    <pre><code><span class="cmd">curl</span> -sf https://install.ding.ing | sh</code></pre>
+    <pre><code><span class="cmd">curl</span> -sf https://start.ding.ing | sh</code></pre>
     <p>Docker:</p>
     <pre><code><span class="cmd">docker run</span> -v ./ding.yaml:/etc/ding/ding.yaml \
-  ghcr.io/super-ding/ding</code></pre>
+  ghcr.io/zuchka/ding</code></pre>
   </section>
 
   <footer>
